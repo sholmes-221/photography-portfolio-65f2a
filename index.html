@@ -178,32 +178,68 @@
   <script src="dist/menu.js"></script>
 
 <script>
-
 async function loadGallery() {
   const res = await fetch('images.json');
   const images = await res.json();
 
   const gallery = document.getElementById('gallery');
+  gallery.className = "flex flex-wrap w-full";  // reset to flex container
 
-  images.forEach(url => {
+  // Create left and right columns
+  const leftCol = document.createElement('div');
+  leftCol.className = "flex w-full md:w-1/2 flex-wrap";
+  const rightCol = document.createElement('div');
+  rightCol.className = "flex w-full md:w-1/2 flex-wrap";
+
+  // Helper to add an image to a column with a specific width class
+  function addImageToCol(col, imgUrl, widthClass) {
     const wrapper = document.createElement('div');
-    wrapper.className = "w-full md:w-1/2 p-1";
+    wrapper.className = `${widthClass} p-1`;
+
+    // Extract a simple alt text from the file name
+    const altText = imgUrl.split('/').pop().split('.').slice(0, -1).join('.') || 'portfolio image';
 
     wrapper.innerHTML = `
       <div class="overflow-hidden h-full w-full">
-        <a href="${url}" data-fancybox="gallery">
+        <a href="${imgUrl}" data-fancybox="gallery">
           <img 
-            src="${url}" 
-            class="block h-full w-full object-cover object-center transform scale-100 hover:scale-110 transition duration-500"
+            src="${imgUrl}" 
+            alt="${altText}"
+            class="block h-full w-full object-cover object-center opacity-0 animate-fade-in transition duration-500 transform scale-100 hover:scale-110"
           />
         </a>
       </div>
     `;
 
-    gallery.appendChild(wrapper);
+    col.appendChild(wrapper);
+  }
+
+  // Define a pattern for the left and right columns to match the original’s varied layout
+  // The pattern is an array of width classes: 'w-full' or 'w-full md:w-1/2'
+  // You can adjust the pattern to get the exact “collage” feel.
+  const leftPattern = ['w-full md:w-1/2', 'w-full md:w-1/2', 'w-full'];
+  const rightPattern = ['w-full', 'w-full md:w-1/2', 'w-full md:w-1/2', 'w-full md:w-1/2', 'w-full md:w-1/2'];
+
+  let leftIdx = 0, rightIdx = 0;
+  // Distribute images alternately between left and right, using the pattern widths
+  images.forEach((url, index) => {
+    // Alternate columns: even index -> left, odd -> right (you can change this logic)
+    if (index % 2 === 0) {
+      const widthClass = leftPattern[leftIdx % leftPattern.length];
+      addImageToCol(leftCol, url, widthClass);
+      leftIdx++;
+    } else {
+      const widthClass = rightPattern[rightIdx % rightPattern.length];
+      addImageToCol(rightCol, url, widthClass);
+      rightIdx++;
+    }
   });
 
-  // rebind fancybox after dynamic load
+  // Append columns to gallery
+  gallery.appendChild(leftCol);
+  gallery.appendChild(rightCol);
+
+  // Rebind Fancybox after dynamic load
   Fancybox.bind("[data-fancybox]", {});
 }
 
