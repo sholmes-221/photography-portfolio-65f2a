@@ -187,51 +187,26 @@ function buildGallery(images) {
   const gallery = document.getElementById('gallery');
   if (!gallery) return;
 
-  gallery.className = "flex flex-wrap w-full";
-  gallery.innerHTML = ''; // clear any existing content
+  gallery.className = "flex flex-col w-full";
+  gallery.innerHTML = '';
 
-  // Create left and right columns
-  const leftCol = document.createElement('div');
-  leftCol.className = "flex w-full md:w-1/2 flex-wrap";
-  const rightCol = document.createElement('div');
-  rightCol.className = "flex w-full md:w-1/2 flex-wrap";
-
-  function addImageToCol(col, imgUrl, widthClass) {
+  images.forEach((imgUrl) => {
     const wrapper = document.createElement('div');
-    wrapper.className = `${widthClass} p-1`;
+    wrapper.className = "w-full p-1";
     const altText = imgUrl.split('/').pop().split('.').slice(0, -1).join('.') || 'portfolio image';
     wrapper.innerHTML = `
-      <div class="overflow-hidden h-full w-full">
+      <div class="overflow-hidden w-full">
         <a href="${imgUrl}" data-fancybox="gallery">
           <img 
             src="${imgUrl}" 
             alt="${altText}"
-            class="block h-full w-full object-cover object-center transition duration-500 transform scale-100 hover:scale-110"
+            class="block w-full object-cover object-center transition duration-500 transform scale-100 hover:scale-110"
           />
         </a>
       </div>
     `;
-    col.appendChild(wrapper);
-  }
-
-  const leftPattern = ['w-full md:w-1/2', 'w-full md:w-1/2', 'w-full'];
-  const rightPattern = ['w-full', 'w-full md:w-1/2', 'w-full md:w-1/2', 'w-full md:w-1/2', 'w-full md:w-1/2'];
-
-  let leftIdx = 0, rightIdx = 0;
-  images.forEach((url, index) => {
-    if (index % 2 === 0) {
-      const widthClass = leftPattern[leftIdx % leftPattern.length];
-      addImageToCol(leftCol, url, widthClass);
-      leftIdx++;
-    } else {
-      const widthClass = rightPattern[rightIdx % rightPattern.length];
-      addImageToCol(rightCol, url, widthClass);
-      rightIdx++;
-    }
+    gallery.appendChild(wrapper);
   });
-
-  gallery.appendChild(leftCol);
-  gallery.appendChild(rightCol);
 
   if (typeof Fancybox !== 'undefined') {
     Fancybox.bind("[data-fancybox]", {});
