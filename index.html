@@ -41,6 +41,57 @@
       plugins: [],
     }
   </script>
+
+  <!-- Gallery styles -->
+  <style>
+    /* Tile entrance */
+    .gallery-item {
+      animation: gallery-rise 0.6s ease-out both;
+      isolation: isolate;
+    }
+    @keyframes gallery-rise {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    /* Shimmer placeholder while loading */
+    .gallery-item.is-loading::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(100deg,
+        rgba(127,127,127,0.08) 20%,
+        rgba(127,127,127,0.22) 40%,
+        rgba(127,127,127,0.08) 60%);
+      background-size: 200% 100%;
+      animation: gallery-shimmer 1.4s linear infinite;
+      z-index: 0;
+    }
+    @keyframes gallery-shimmer {
+      from { background-position: 100% 0; }
+      to   { background-position: -100% 0; }
+    }
+
+    /* Image fade-in + hover zoom */
+    .gallery-img {
+      opacity: 0;
+      transform: scale(1.0);
+      transition: opacity 0.6s ease, transform 0.8s cubic-bezier(.2,.7,.2,1);
+      will-change: transform;
+    }
+    .gallery-img:not(.is-loaded) { min-height: 16rem; }
+    .gallery-img.is-loaded { opacity: 1; }
+    .gallery-item:hover .gallery-img,
+    .gallery-item:focus-within .gallery-img { transform: scale(1.05); }
+
+    @media (prefers-reduced-motion: reduce) {
+      .gallery-item,
+      .gallery-item.is-loading::before { animation: none; }
+      .gallery-img { transition: opacity 0.3s ease; }
+      .gallery-item:hover .gallery-img,
+      .gallery-item:focus-within .gallery-img { transform: none; }
+    }
+  </style>
 </head>
 
 <body
@@ -106,8 +157,12 @@
   <!-- Content -->
   <div class="container mx-auto">
     <h1 class="text-4xl pt-10 pb-8 font-bold">PORTFOLIO</h1>
-    <section class="text-neutral-700">
-      <div id="gallery" class="flex flex-wrap w-full"></div>
+    <section class="text-neutral-700" aria-label="Portfolio gallery">
+      <!-- Masonry gallery -->
+      <div id="gallery" class="columns-1 sm:columns-2 lg:columns-3 gap-4 w-full"></div>
+      <p id="gallery-empty" class="hidden text-center text-sm text-gray-500 dark:text-gray-400 py-16">
+        No images to display yet.
+      </p>
     </section>
   </div>
   <!-- Footer -->
@@ -134,7 +189,7 @@
                 <span class="sr-only"> Instagram </span>
                 <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
                   <path
-                    d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.917 3.917 0 0 0-1.417.923A3.927 3.927 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.7.01 5.555 0 5.827 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.827 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.916 3.916 0 0 0 1.416-.923c.445-.445.718-.891.923-1.417.197-.509.332-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.175-1.433-.372-1.941a3.926 3.926 0 0 0-.923-1.417A3.911 3.911 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 7.998 0h.003zm-.717 1.442h.718c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599.28.28.453.546.598.92.11.281.24.705.275 1.485.039.843.047 1.096.047 3.231s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.47 2.47 0 0 1-.599.919c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.478 2.478 0 0 1-.92-.598 2.48 2.48 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.233 0-2.136.008-2.388.046-3.231.036-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92.28-.28.546-.453.92-.598.282-.11.705-.24 1.485-.276.738-.034 1.024-.044 2.515-.045v.002zm4.988 1.328a.96.96 0 1 0 0 1.92.96.96 0 0 0 0-1.92zm-4.27 1.122a4.109 4.109 0 1 0 0 8.217 4.109 4.109 0 0 0 0-8.217zm0 1.441a2.667 2.667 0 1 1 0 5.334 2.667 2.667 0 0 1 0-5.334z" />
+                    d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.917 3.917 0 0 0-1.417.923A3.927 3.927 0 0 0 .42 2.760C.222 3.268.087 3.85.048 4.7.01 5.555 0 5.827 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.990 5.827 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.916 3.916 0 0 0 1.416-.923c.445-.445.718-.891.923-1.417.197-.509.332-1.090.372-1.942C15.990 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.175-1.433-.372-1.941a3.926 3.926 0 0 0-.923-1.417A3.911 3.911 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 7.998 0h.003zm-.717 1.442h.718c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599.28.28.453.546.598.92.11.281.24.705.275 1.485.039.843.047 1.096.047 3.231s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.470 2.470 0 0 1-.599.919c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.276-.843.038-1.096.047-3.232.047s-2.390-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.478 2.478 0 0 1-.92-.598 2.480 2.480 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.233 0-2.136.008-2.388.046-3.231.036-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92.28-.28.546-.453.92-.598.282-.11.705-.24 1.485-.276.738-.034 1.024-.044 2.515-.045v.002zm4.988 1.328a.96.96 0 1 0 0 1.920.96.96 0 0 0 0-1.920zm-4.270 1.122a4.109 4.109 0 1 0 0 8.217 4.109 4.109 0 0 0 0-8.217zm0 1.441a2.667 2.667 0 1 1 0 5.334 2.667 2.667 0 0 1 0-5.334z" />
                 </svg>
               </a>
               <!-- <a class="transition duration-300 hover:opacity-75" href="https://twitter.com" target="_blank"
@@ -170,52 +225,122 @@
       </p>
     </div>
   </footer>
-  <!-- Script for the LightBox -->
+
+  <!-- Script for the LightBox (bound once; v5 uses event delegation so dynamic items work) -->
   <script>
-    Fancybox.bind("[data-fancybox]", {});
+    Fancybox.bind('[data-fancybox="gallery"]', {
+      Thumbs: { type: "classic" },
+      Hash: false,
+    });
   </script>
   <script src="dist/fade_in.js"></script>
   <script src="dist/menu.js"></script>
 
 <script>
-// Fallback images (your actual list from the chat)
+// Fallback images (used if images.json fails to load)
 const FALLBACK_IMAGES = [
   "https://8d9f319.webp.li/20260406-MEITU_20260406_210051523.jpg"
 ];
 
+// Accepts either "url" strings or { src, thumb?, caption? } objects
+function normaliseItem(item) {
+  if (typeof item === 'string') return { src: item, thumb: item, caption: '' };
+  if (item && item.src) return { src: item.src, thumb: item.thumb || item.src, caption: item.caption || '' };
+  return null;
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
+function altFromUrl(url) {
+  return url.split('/').pop().split('.').slice(0, -1).join('.') || 'portfolio image';
+}
+
 function buildGallery(images) {
   const gallery = document.getElementById('gallery');
+  const empty = document.getElementById('gallery-empty');
   if (!gallery) return;
 
-  gallery.className = "flex flex-col w-full";
   gallery.innerHTML = '';
+  const items = (Array.isArray(images) ? images : []).map(normaliseItem).filter(Boolean);
 
-  images.forEach((imgUrl) => {
-    const wrapper = document.createElement('div');
-    wrapper.className = "w-full p-1";
-    const altText = imgUrl.split('/').pop().split('.').slice(0, -1).join('.') || 'portfolio image';
-    wrapper.innerHTML = `
-      <div class="overflow-hidden w-full">
-        <a href="${imgUrl}" data-fancybox="gallery">
-          <img 
-            src="${imgUrl}" 
-            alt="${altText}"
-            class="block w-full object-cover object-center transition duration-500 transform scale-100 hover:scale-110"
-          />
-        </a>
-      </div>
+  if (!items.length) {
+    empty && empty.classList.remove('hidden');
+    return;
+  }
+  empty && empty.classList.add('hidden');
+
+  const frag = document.createDocumentFragment();
+
+  items.forEach((img, i) => {
+    const figure = document.createElement('figure');
+    figure.className =
+      'gallery-item is-loading group relative mb-4 break-inside-avoid overflow-hidden rounded-xl ' +
+      'bg-neutral-100 dark:bg-neutral-900 shadow-sm hover:shadow-xl transition-shadow duration-500';
+    figure.style.animationDelay = `${Math.min(i, 12) * 70}ms`;
+
+    const alt = escapeHtml(img.caption || altFromUrl(img.src));
+    const caption = img.caption ? escapeHtml(img.caption) : '';
+
+    figure.innerHTML = `
+      <a href="${escapeHtml(img.src)}"
+         data-fancybox="gallery"
+         ${caption ? `data-caption="${caption}"` : ''}
+         class="relative z-10 block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white focus-visible:ring-offset-2 dark:focus-visible:ring-offset-black">
+        <img
+          src="${escapeHtml(img.thumb)}"
+          alt="${alt}"
+          loading="${i < 6 ? 'eager' : 'lazy'}"
+          decoding="async"
+          class="gallery-img block w-full h-auto"
+        />
+        <!-- Hover overlay -->
+        <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent
+                    opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-500"></div>
+        ${caption ? `
+        <figcaption class="pointer-events-none absolute left-4 bottom-4 right-14 text-white text-sm font-signika
+                           translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100
+                           transition duration-500">${caption}</figcaption>` : ''}
+        <!-- Zoom icon -->
+        <span class="pointer-events-none absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full
+                     bg-white/90 text-black shadow-md backdrop-blur
+                     scale-75 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition duration-500">
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 8v6m-3-3h6m5 0a8 8 0 11-16 0 8 8 0 0116 0z"/>
+          </svg>
+        </span>
+      </a>
     `;
-    gallery.appendChild(wrapper);
+
+    const imgEl = figure.querySelector('img');
+    const reveal = () => {
+      imgEl.classList.add('is-loaded');
+      figure.classList.remove('is-loading');
+    };
+    const fail = () => {
+      console.warn('⚠️ Image failed to load, removing:', img.src);
+      figure.remove();
+    };
+
+    if (imgEl.complete) {
+      imgEl.naturalWidth ? reveal() : fail();
+    } else {
+      imgEl.addEventListener('load', reveal, { once: true });
+      imgEl.addEventListener('error', fail, { once: true });
+    }
+
+    frag.appendChild(figure);
   });
 
-  if (typeof Fancybox !== 'undefined') {
-    Fancybox.bind("[data-fancybox]", {});
-  }
+  gallery.appendChild(frag);
 }
 
 async function loadGallery() {
   try {
-    const res = await fetch('images.json');
+    const res = await fetch('images.json', { cache: 'no-cache' });
     if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
     const images = await res.json();
     console.log('✅ Loaded images.json:', images);
